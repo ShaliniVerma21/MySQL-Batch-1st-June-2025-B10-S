@@ -2,6 +2,8 @@ create database xyzCollege;
 
 use xyzCollege;
 
+drop database xyzcollege;
+
 -- Foriegn Keys
 -- Delete and Update Cascade
 
@@ -291,3 +293,34 @@ INSERT INTO Salary (SalaryID, FacultyID, SalaryAmount, PaymentDate, PaymentMetho
 
 select * from salary;
 
+-- Perform Delete and Update Operations
+-- Delete a department (e.g., DepartmentID = 1)
+DELETE FROM Departments WHERE DepartmentID = 2;
+
+-- Check the Faculty and Students tables to see the effects
+SELECT * FROM Faculty;  -- DepartmentID for faculty in department 1 should be NULL
+SELECT * FROM Students;  -- DepartmentID for students in department 1 should be NULL
+
+
+-- Delete a faculty member (e.g., FacultyID = 1)
+DELETE FROM Faculty WHERE FacultyID = 1;
+
+-- Check the Salary table to see if the salary record for FacultyID = 1 is deleted
+SELECT * FROM Salary;  -- Salary record for FacultyID 1 should be gone
+
+-- Check the Marks table to see the effects
+SELECT * FROM Marks;  -- FacultyID for marks graded by FacultyID 1 should be NULL
+
+-- Update a department ID (e.g., change DepartmentID from 2 to 20)
+UPDATE Departments SET DepartmentID = 20 WHERE DepartmentID = 2;
+
+-- Check the Faculty and Students tables to see the effects
+SELECT * FROM Faculty;  -- DepartmentID for faculty who were in department 2 should now be 20
+SELECT * FROM Students;  -- DepartmentID for students who were in department 2 should now be 20
+
+-- Update a faculty ID (e.g., change FacultyID from 3 to 30)
+UPDATE Faculty SET FacultyID = 30 WHERE FacultyID = 3;
+
+-- Check the Marks and Salary tables to see the effects
+SELECT * FROM Marks;  -- FacultyID for marks graded by FacultyID 3 should now be 30
+SELECT * FROM Salary;  -- FacultyID in Salary table for FacultyID 3 should now be 30
