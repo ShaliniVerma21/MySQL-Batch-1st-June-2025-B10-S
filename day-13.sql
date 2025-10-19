@@ -111,9 +111,7 @@ are to eliminate data redundancy and ensure data dependencies make sense.
 Why Normalize?
 
 Reduce Redundancy: Avoid storing the same data multiple times.
-
 Improve Data Integrity: Keep data consistent and accurate.
-
 Prevent Anomalies: Avoid problems when adding, updating, or deleting data.
 
 Normal Forms
@@ -123,7 +121,7 @@ Normalization is done in steps called "normal forms."
 Normalization typically involves several stages, known as normal forms (NF). 
 The most commonly used normal forms are:
 
-1. First Normal Form (1NF):
+1. First Normal Form (1NF) {Eliminate repeating group}:
 A table is in 1NF if all the attributes contain only atomic (indivisible) values, 
 and each entry in a column is of the same data type. There should be no repeating 
 groups or arrays.
@@ -131,7 +129,23 @@ Example: A table with student information should not have multiple phone numbers
 in a single field. Instead, each phone number should be in its own row or managed 
 through a separate table.
 
-2. Second Normal Form (2NF):
+- Each column should contain atomic (indivisible) values.
+- Each record must be unique (use a primary key).
+
+| StudentID | Name | Subjects      |
+| --------- | ---- | ------------- |
+| 1         | Raj  | Math, Science |
+
+❌ Not 1NF (Subjects are multiple values).
+
+✔ Convert to 1NF:
+
+| StudentID | Name | Subject |
+| --------- | ---- | ------- |
+| 1         | Raj  | Math    |
+| 1         | Raj  | Science |
+
+2. Second Normal Form (2NF) {Eliminate Partial Dependency}:
 A table is in 2NF if it is in 1NF and all non-key attributes are fully functionally 
 dependent on the primary key. This means that there should be no partial dependency 
 of any column on the primary key.
@@ -139,18 +153,182 @@ Example: If a table contains student ID, course ID, and courseName, and Composit
 (studentID, CourseID) then the courseName should not depend on just the student ID. 
 it should depend on both.
 
-3. Third Normal Form (3NF):
+- Must be in 1NF.
+- All non-key columns are fully dependent on the entire primary key, not just part of it.
+
+Example (Before 2NF):
+| StudentID | Course | StudentName | CourseName |
+| --------: | ------ | ----------- | ---------- |
+|         1 | C101   | Raj         | Python     |
+|         1 | C102   | Raj         | SQL        |
+
+Here, Primary Key = (StudentID, Course)
+
+StudentName depends only on StudentID → ❌ Partial Dependency.
+
+Converted to 2NF:
+
+Student Table:
+| StudentID | StudentName |
+| --------: | ----------- |
+|         1 | Raj         |
+
+Course Table:
+| CourseID | CourseName |
+| -------: | ---------- |
+|     C101 | Python     |
+|     C102 | SQL        |
+
+Enrollment Table:
+| StudentID | CourseID |
+| --------: | -------- |
+|         1 | C101     |
+|         1 | C102     |
+
+Note : ✔ Now in 2NF — every non-key attribute depends on the full key.
+Use case: When composite keys exist; eliminates redundancy.
+
+3. Third Normal Form (3NF){Eliminate transitive dependency}:
 A table is in 3NF if it is in 2NF and there are no transitive dependencies, meaning 
 that non-key attributes do not depend on other non-key attributes.
 Example: If a table has student ID, department ID, and department name, the department 
 name should depend only on the department ID, not on the student ID.
+- It is already in 2NF.
+- No transitive dependency exists — i.e., non-key columns must not depend on other non-key columns.
 
-4. Boyce-Codd Normal Form (BCNF):
+Example (Before 3NF):
+| StudentID | StudentName | Department | DeptHead   |
+| --------: | ----------- | ---------- | ---------- |
+|         1 | Raj         | IT         | Mr. Mehta  |
+|         2 | Shalini     | HR         | Ms. Trisha |
+
+Here, DeptHead depends on Department, not directly on StudentID → ❌ Transitive dependency.
+
+Converted to 3NF:
+
+Student Table:
+| StudentID | StudentName | Department |
+| --------: | ----------- | ---------- |
+|         1 | Raj         | IT         |
+|         2 | Shalini     | HR         |
+
+Department Table:
+| Department | DeptHead   |
+| ---------- | ---------- |
+| IT         | Mr. Mehta  |
+| HR         | Ms. Trisha |
+
+Note :  Now in 3NF — all non-key attributes depend only on primary key.
+Use case: Removes dependency chains; makes data cleaner and maintainable.
+
+4. Boyce-Codd Normal Form (BCNF){eliminate functional dependency and more restricted than 3NF}:
 A table is in BCNF if it is in 3NF and for every functional dependency (X → Y), 
 X is a super key. This means that every determinant must be a candidate key.
 Example: If a table has a functional dependency where a student's advisor can only be 
 from one department, it may violate BCNF if the advisor's department is not a candidate key.
 
+- For every functional dependency (X → Y), X must be a super key.
+- Used when a table still has anomalies even after 3NF.
+
+Example (Before BCNF):
+| Professor | Subject  | Department |
+| --------- | -------- | ---------- |
+| A         | DBMS     | CS         |
+| B         | OS       | CS         |
+| A         | Networks | IT         |
+
+Here:
+Each Professor teaches one Department → Professor → Department
+But primary key is (Professor, Subject) → ❌ violates BCNF.
+
+Converted to BCNF:
+Professor Table:
+| Professor | Department |
+| --------- | ---------- |
+| A         | CS         |
+| B         | CS         |
+
+Teaching Table:
+| Professor | Subject  |
+| --------- | -------- |
+| A         | DBMS     |
+| A         | Networks |
+| B         | OS       |
+
+Note :✔ Now in BCNF — every determinant is a candidate key.
+Use case: Applied when multiple overlapping candidate keys exist.
+
+
+5. Fourth Normal Form (4NF) — Eliminate Multi-Valued Dependencies
+A table is in 4NF if , It is in BCNF.and It contains no multi-valued dependencies, i.e., 
+one column shouldn’t depend on multiple independent multi-valued facts.
+
+Example (Before 4NF):
+| Student | Hobby  | Language |
+| ------- | ------ | -------- |
+| Raj     | Music  | Hindi    |
+| Raj     | Music  | English  |
+| Raj     | Sports | Hindi    |
+| Raj     | Sports | English  |
+
+❌ Hobby and Language are independent, multi-valued.
+
+Converted to 4NF:
+
+Student_Hobby Table:
+| Student | Hobby  |
+| ------- | ------ |
+| Raj     | Music  |
+| Raj     | Sports |
+
+Student_Language Table:
+| Student | Language |
+| ------- | -------- |
+| Raj     | Hindi    |
+| Raj     | English  |
+
+Note : ✔ Now in 4NF — removes multi-valued dependencies.
+Use case: For advanced modeling — e.g., people with multiple skills, languages, or roles.
+
+
+6. Fifth Normal Form (5NF) — Eliminate Join Dependencies
+
+A table is in 5NF if, It is in 4NF.and It cannot be further decomposed into smaller tables without losing data.
+All join dependencies are implied by candidate keys.
+
+Example (Before 5NF):
+| Product | Supplier | Customer |
+| ------- | -------- | -------- |
+| P1      | S1       | C1       |
+| P1      | S1       | C2       |
+| P2      | S2       | C1       |
+
+Here, relationships between Product, Supplier, and Customer cause join dependency.
+
+Converted to 5NF:
+
+Product_Supplier Table:
+| Product | Supplier |
+| ------- | -------- |
+| P1      | S1       |
+| P2      | S2       |
+
+Supplier_Customer Table:
+| Supplier | Customer |
+| -------- | -------- |
+| S1       | C1       |
+| S1       | C2       |
+| S2       | C1       |
+
+Product_Customer Table:
+| Product | Customer |
+| ------- | -------- |
+| P1      | C1       |
+| P1      | C2       |
+| P2      | C1       |
+
+Note : ✔ Now in 5NF — no data redundancy, every relation is meaningful.
+Use case: Highly normalized systems, complex business relations (rare in practice).
 */
 
 -- Step 1: Create the Unnormalized Table
@@ -277,67 +455,3 @@ JOIN
     Student1 s ON e.StudentID = s.StudentID
 JOIN 
     Courses1 c ON e.CourseID = c.
-    
-    /*
-    First Normal Form (1NF)
-
-- Each column should contain atomic (indivisible) values.
-- Each record must be unique (use a primary key).
-
-| StudentID | Name | Subjects      |
-| --------- | ---- | ------------- |
-| 1         | Raj  | Math, Science |
-
-❌ Not 1NF (Subjects are multiple values).
-
-✔ Convert to 1NF:
-
-| StudentID | Name | Subject |
-| --------- | ---- | ------- |
-| 1         | Raj  | Math    |
-| 1         | Raj  | Science |
-
-Second Normal Form (2NF)
-
-- Must be in 1NF.
-- No partial dependency (non-key column depends on only part of a composite key).
-
-Example:
-If Primary Key = (StudentID, Subject)
-and “StudentName” depends only on StudentID → ❌ Not 2NF
-
-✔ Move “StudentName” to a separate table.
-
-Third Normal Form (3NF)
-
-- Must be in 2NF.
-- No transitive dependency (non-key column depends on another non-key column).
-
-| StudentID                                  | StudentName | Department | DeptHead |
-| ------------------------------------------ | ----------- | ---------- | -------- |
-| DeptHead depends on Department → ❌ Not 3NF |             |            |          |
-
-✔ Create separate Department table.
-
-4️ Boyce-Codd Normal Form (BCNF)
-
-- A stronger version of 3NF.
-- Every determinant must be a candidate key.
-
-Used when a table still has anomalies even after 3NF.
-
--- Students Table
-CREATE TABLE Students (
-  StudentID INT PRIMARY KEY,
-  Name VARCHAR(50),
-  DepartmentID INT
-);
-
--- Department Table
-CREATE TABLE Department (
-  DepartmentID INT PRIMARY KEY,
-  DepartmentName VARCHAR(50)
-);
-
-
-    */
