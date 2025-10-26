@@ -220,7 +220,6 @@ END //
 
 DELIMITER ;
 
-
 -- Step 3: Execute the Procedure
 CALL ShowAllProducts();
 
