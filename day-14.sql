@@ -26,6 +26,7 @@ END //
 DELIMITER ;
 
 */
+
 -- Create the Stored Procedure:
 DELIMITER //
 
@@ -64,7 +65,6 @@ Stored Procedures-  are best for executing complex logic, managing transactions,
 
 User Defined Functions-  are ideal for calculations and transformations that can be reused in SQL expressions.
 
-
 When to Use Each---
 
 Use Stored Procedures When:
@@ -79,7 +79,6 @@ Use User-Defined Functions When:
 1. You need to perform calculations or transformations that can be reused in SQL queries.
 2. You want to return a single value or a table.
 3. You need to use the function in a SELECT statement, WHERE clause, or other SQL expressions.
-
 */
 
 -- Example of a Stored Procedure
@@ -139,7 +138,6 @@ DELIMITER ;
 -- Usage:
 CALL GetProductsByCategory('Electronics');
 
-
 -- Example 3: Stored Procedure with Output Parameter
 DELIMITER //
 CREATE PROCEDURE GetTotalSales(IN productId INT, OUT totalSales DECIMAL(10, 2))
@@ -184,7 +182,6 @@ CREATE TABLE Product1 (
     Product VARCHAR(100) NOT NULL
 );
 
--- Step 2: Insert Sample Data
 INSERT INTO Product1 (Product) VALUES
 ('Apple'),
 ('Banana'),
@@ -194,36 +191,42 @@ INSERT INTO Product1 (Product) VALUES
 
 select * from product1;
 
--- Step 3: Create the Stored Procedure
+-- Step 2: Create Stored Procedure Using Cursor
 DELIMITER //
-
-CREATE PROCEDURE PrintProductNames()
+CREATE PROCEDURE ShowAllProducts()
 BEGIN
-    DECLARE done INT DEFAULT FALSE;
-    DECLARE product VARCHAR(100);
-    DECLARE productCursor CURSOR FOR SELECT Product FROM Product1 WHERE Product IS NOT NULL;
-    DECLARE CONTINUE HANDLER FOR NOT FOUND SET done = TRUE;
-
-    OPEN productCursor;
-
+    -- Declare variables
+    DECLARE finished INT DEFAULT 0;
+    DECLARE prodName VARCHAR(100);
+    -- Declare cursor to fetch product names
+    DECLARE prodCursor CURSOR FOR SELECT Product FROM Product1;
+    -- Declare handler to set finished=1 when no more rows
+    DECLARE CONTINUE HANDLER FOR NOT FOUND SET finished = 1;
+    -- Open cursor
+    OPEN prodCursor;
+    -- Start loop
     read_loop: LOOP
-        FETCH productCursor INTO product;
-        IF done THEN
+        FETCH prodCursor INTO prodName;
+        IF finished = 1 THEN
             LEAVE read_loop;
         END IF;
-        SELECT product AS ProductName;  -- Print the product name
+        -- Display product name
+        SELECT prodName AS Product_Name;
     END LOOP;
 
-    CLOSE productCursor;
+    -- Close cursor
+    CLOSE prodCursor;
 END //
 
 DELIMITER ;
 
--- Call the Stored Procedure
-CALL PrintProductNames();
 
--- Drop the Procedure after Execution
-DROP PROCEDURE IF EXISTS PrintProductNames;
+-- Step 3: Execute the Procedure
+CALL ShowAllProducts();
+
+-- Step 4: Drop Procedure
+DROP PROCEDURE IF EXISTS ShowAllProducts;
+
 
 -- Verify Table Data
 SELECT * FROM Product1;
